@@ -4,6 +4,11 @@ import type { PlayerConfig } from '../config/gameConfig';
 import type { MatchData } from '../types';
 import { drawFestiveBackground, createTextButton } from '../utils/decorations';
 
+const CARD_W = 130;
+const CARD_H = 155;
+const GRID_GAP_X = 20;
+const GRID_GAP_Y = 14;
+
 export class SelectScene extends Phaser.Scene {
   private selectedP1: PlayerConfig | null = null;
   private selectedP2: PlayerConfig | null = null;
@@ -24,94 +29,98 @@ export class SelectScene extends Phaser.Scene {
     drawFestiveBackground(this, width, height);
 
     this.add
-      .text(width / 2, 36, 'Выбери двух футболистов', {
+      .text(width / 2, 30, 'Выбери двух футболистов', {
         fontFamily: 'Nunito, sans-serif',
-        fontSize: '32px',
+        fontSize: '30px',
         fontStyle: 'bold',
         color: '#ffd166',
       })
       .setOrigin(0.5);
 
     this.add
-      .text(width / 2, 68, 'Игрок 1 (WASD)  vs  Игрок 2 (стрелки)', {
+      .text(width / 2, 58, 'Игрок 1 (WASD)  vs  Игрок 2 (стрелки)', {
         fontFamily: 'Nunito, sans-serif',
-        fontSize: '16px',
+        fontSize: '15px',
         color: '#d8f3dc',
       })
       .setOrigin(0.5);
 
     const cols = 3;
-    const cardW = 140;
-    const cardH = 170;
-    const gapX = 24;
-    const gapY = 20;
-    const gridW = cols * cardW + (cols - 1) * gapX;
-    const startX = width / 2 - gridW / 2 + cardW / 2;
-    const startY = 130 + cardH / 2;
+    const gridW = cols * CARD_W + (cols - 1) * GRID_GAP_X;
+    const gridH = 2 * CARD_H + GRID_GAP_Y;
+    const gridTop = 78;
+    const startX = width / 2 - gridW / 2 + CARD_W / 2;
+    const startY = gridTop + CARD_H / 2;
 
     gameConfig.players.forEach((player, index) => {
       const col = index % cols;
       const row = Math.floor(index / cols);
-      const x = startX + col * (cardW + gapX);
-      const y = startY + row * (cardH + gapY);
-      this.cardContainers.push(this.createPlayerCard(x, y, player, cardW, cardH));
+      const x = startX + col * (CARD_W + GRID_GAP_X);
+      const y = startY + row * (CARD_H + GRID_GAP_Y);
+      this.cardContainers.push(this.createPlayerCard(x, y, player));
     });
 
-    this.quoteText = this.add.text(width / 2, height - 130, '', {
+    const gridBottom = gridTop + gridH;
+    const quotePanelY = gridBottom + 36;
+    const quotePanelH = 72;
+
+    const quotePanel = this.add.rectangle(width / 2, quotePanelY, width * 0.88, quotePanelH, 0x1b4332, 0.72);
+    quotePanel.setStrokeStyle(2, 0xffd166, 0.45);
+    quotePanel.setDepth(5);
+
+    this.quoteText = this.add.text(width / 2, quotePanelY, 'Выбери первого игрока', {
       fontFamily: 'Nunito, sans-serif',
-      fontSize: '18px',
+      fontSize: '15px',
       color: '#ffffff',
       fontStyle: 'italic',
       align: 'center',
       wordWrap: { width: width * 0.8 },
+      lineSpacing: 4,
     });
     this.quoteText.setOrigin(0.5);
+    this.quoteText.setDepth(6);
 
-    this.startButton = createTextButton(this, width / 2, height - 60, 'На поле!', () => {
+    const buttonY = height - 48;
+    this.startButton = createTextButton(this, width / 2, buttonY, 'На поле!', () => {
       if (!this.startButton?.getData('enabled')) return;
       if (this.selectedP1 && this.selectedP2) {
         const data: MatchData = { player1: this.selectedP1, player2: this.selectedP2 };
         this.scene.start('GameScene', data);
       }
     });
+    this.startButton.setDepth(10);
     this.startButton.setData('enabled', false);
     this.updateStartButton();
   }
 
-  private createPlayerCard(
-    x: number,
-    y: number,
-    player: PlayerConfig,
-    w: number,
-    h: number,
-  ): Phaser.GameObjects.Container {
+  private createPlayerCard(x: number, y: number, player: PlayerConfig): Phaser.GameObjects.Container {
     const container = this.add.container(x, y);
-    const bg = this.add.rectangle(0, 0, w, h, 0xffffff, 0.15);
+    const bg = this.add.rectangle(0, 0, CARD_W, CARD_H, 0xffffff, 0.15);
     bg.setStrokeStyle(3, 0xffffff, 0.4);
 
-    const token = this.add.image(0, -15, `token_${player.id}`);
-    token.setDisplaySize(88, 88);
+    const token = this.add.image(0, -12, `token_${player.id}`);
+    token.setDisplaySize(80, 80);
 
     this.tweens.add({
       targets: token,
-      y: token.y - 6,
+      y: token.y - 5,
       duration: 1100 + Math.random() * 400,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
     });
 
-    const name = this.add.text(0, 58, player.name, {
+    const name = this.add.text(0, 52, player.name, {
       fontFamily: 'Nunito, sans-serif',
-      fontSize: '20px',
+      fontSize: '18px',
       fontStyle: 'bold',
       color: '#ffffff',
     });
     name.setOrigin(0.5);
 
-    const badge = this.add.text(0, -h / 2 + 14, '', {
+    const badge = this.add.text(0, -CARD_H / 2 + 12, '', {
       fontFamily: 'Nunito, sans-serif',
-      fontSize: '14px',
+      fontSize: '13px',
       fontStyle: 'bold',
       color: '#1b4332',
       backgroundColor: '#ffd166',
@@ -120,7 +129,7 @@ export class SelectScene extends Phaser.Scene {
     badge.setOrigin(0.5);
 
     container.add([bg, token, name, badge]);
-    container.setSize(w, h);
+    container.setSize(CARD_W, CARD_H);
     container.setInteractive({ useHandCursor: true });
 
     container.on('pointerdown', () => {
@@ -153,13 +162,13 @@ export class SelectScene extends Phaser.Scene {
         this.highlightPlayer(this.selectedP1, 'P1', 0x4cc9f0);
         this.quoteText?.setText(this.selectedP1.selectQuote);
       } else {
-        this.quoteText?.setText('');
+        this.quoteText?.setText('Выбери первого игрока');
       }
     } else if (player.id === this.selectedP2?.id) {
       this.selectedP2 = null;
       badge.setText('');
       bg.setStrokeStyle(3, 0xffffff, 0.4);
-      this.quoteText?.setText(this.selectedP1?.selectQuote ?? '');
+      this.quoteText?.setText(this.selectedP1?.selectQuote ?? 'Выбери первого игрока');
     } else {
       this.selectedP2 = player;
       this.resetCards();

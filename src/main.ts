@@ -5,6 +5,7 @@ import { IntroScene } from './scenes/IntroScene';
 import { SelectScene } from './scenes/SelectScene';
 import { GameScene } from './scenes/GameScene';
 import { ResultScene } from './scenes/ResultScene';
+import { LockedScene } from './scenes/LockedScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -23,7 +24,7 @@ const config: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, IntroScene, SelectScene, GameScene, ResultScene],
+  scene: [BootScene, LockedScene, IntroScene, SelectScene, GameScene, ResultScene],
 };
 
 new Phaser.Game(config);

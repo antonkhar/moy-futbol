@@ -10,6 +10,9 @@ export const gameConfig = {
   birthdayName: 'Виталик',
   introMessage: 'С Днём Рождения!',
   endMatchMessage: 'Ура, с днём рождения! Отпразднуем пивом? 🍺',
+  /** Дата открытия игры — полночь по Москве (UTC+3) */
+  unlockDateIso: '2026-06-11',
+  lockedMessage: 'Ты еще маленький, погоди пока...',
   matchDurationSec: 120,
   goalsToWin: 3,
 
