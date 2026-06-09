@@ -6,6 +6,7 @@ import { SelectScene } from './scenes/SelectScene';
 import { GameScene } from './scenes/GameScene';
 import { ResultScene } from './scenes/ResultScene';
 import { LockedScene } from './scenes/LockedScene';
+import { resolveUnlockState } from './utils/unlockGate';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -27,4 +28,6 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [BootScene, LockedScene, IntroScene, SelectScene, GameScene, ResultScene],
 };
 
-new Phaser.Game(config);
+resolveUnlockState().then(() => {
+  new Phaser.Game(config);
+});

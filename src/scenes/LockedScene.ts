@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { gameConfig } from '../config/gameConfig';
 import { drawFestiveBackground } from '../utils/decorations';
-import { getUnlockTestMode } from '../utils/unlockGate';
+import { getUnlockDebugInfo, getUnlockTestMode } from '../utils/unlockGate';
 
 export class LockedScene extends Phaser.Scene {
   constructor() {
@@ -35,12 +35,18 @@ export class LockedScene extends Phaser.Scene {
 
     const testMode = getUnlockTestMode();
     if (testMode) {
+      const debug = getUnlockDebugInfo();
       this.add
-        .text(width / 2, height - 28, `тест: ${testMode}`, {
-          fontFamily: 'Nunito, sans-serif',
-          fontSize: '12px',
-          color: '#b7e4c7',
-        })
+        .text(
+          width / 2,
+          height - 28,
+          `тест: ${testMode} · МСК сегодня: ${debug.nowMoscowYmd} · открытие: ${debug.unlockMoscowYmd}`,
+          {
+            fontFamily: 'Nunito, sans-serif',
+            fontSize: '11px',
+            color: '#b7e4c7',
+          },
+        )
         .setOrigin(0.5);
     }
   }

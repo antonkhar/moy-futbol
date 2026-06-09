@@ -1,9 +1,9 @@
 import { gameConfig } from '../config/gameConfig';
+import { assetUrl } from './assetUrl';
 
 export type UnlockTestMode = 'locked' | 'unlocked';
 
-/** Полночь 11 июня 2026 по Москве (UTC+3) */
-const UNLOCK_TIMESTAMP_MS = Date.parse(`${gameConfig.unlockDateIso}T00:00:00+03:00`);
+let resolvedUnlockState: boolean | null = null;
 
 /**
  * Тестовый режим через URL:
@@ -17,23 +17,92 @@ export function getUnlockTestMode(): UnlockTestMode | null {
   return null;
 }
 
+/** Календарная дата YYYYMMDD в часовом поясе Москвы */
+export function toMoscowYmd(date: Date): number {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Moscow',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const pick = (type: string): number =>
+    Number(parts.find((part) => part.type === type)?.value ?? '0');
+
+  return pick('year') * 10000 + pick('month') * 100 + pick('day');
+}
+
+function parseUnlockYmd(): number {
+  const [year, month, day] = gameConfig.unlockDateIso.split('-').map(Number);
+  return year * 10000 + month * 100 + day;
+}
+
+function isUnlockDateReached(now: Date): boolean {
+  return toMoscowYmd(now) >= parseUnlockYmd();
+}
+
+/** Время с сервера GitHub Pages (UTC в заголовке Date), без кеша */
+async function fetchServerTime(): Promise<Date | null> {
+  try {
+    const response = await fetch(`${assetUrl('favicon.svg')}?t=${Date.now()}`, {
+      method: 'HEAD',
+      cache: 'no-store',
+    });
+    const dateHeader = response.headers.get('date');
+    if (dateHeader) return new Date(dateHeader);
+  } catch {
+    // офлайн или сеть недоступна
+  }
+  return null;
+}
+
+/**
+ * Вызывается один раз до старта Phaser.
+ * Сначала время сервера, иначе — локальные часы через Москву.
+ */
+export async function resolveUnlockState(): Promise<boolean> {
+  const testMode = getUnlockTestMode();
+  if (testMode === 'locked') {
+    resolvedUnlockState = false;
+    return false;
+  }
+  if (testMode === 'unlocked') {
+    resolvedUnlockState = true;
+    return true;
+  }
+
+  const serverTime = await fetchServerTime();
+  const now = serverTime ?? new Date();
+  resolvedUnlockState = isUnlockDateReached(now);
+  return resolvedUnlockState;
+}
+
 export function isGameUnlocked(): boolean {
   const testMode = getUnlockTestMode();
   if (testMode === 'locked') return false;
   if (testMode === 'unlocked') return true;
-  return Date.now() >= UNLOCK_TIMESTAMP_MS;
+
+  if (resolvedUnlockState !== null) return resolvedUnlockState;
+
+  // Запасной синхронный путь (не должен срабатывать до resolveUnlockState)
+  return isUnlockDateReached(new Date());
 }
 
 export function getUnlockDebugInfo(): {
   nowUtc: string;
-  unlockAtMoscow: string;
+  nowMoscowYmd: number;
+  unlockMoscowYmd: number;
   unlocked: boolean;
   testMode: UnlockTestMode | null;
+  usedServerTime: boolean;
 } {
+  const now = new Date();
   return {
-    nowUtc: new Date().toISOString(),
-    unlockAtMoscow: '11 июня 2026, 00:00 (Москва)',
+    nowUtc: now.toISOString(),
+    nowMoscowYmd: toMoscowYmd(now),
+    unlockMoscowYmd: parseUnlockYmd(),
     unlocked: isGameUnlocked(),
     testMode: getUnlockTestMode(),
+    usedServerTime: resolvedUnlockState !== null,
   };
 }

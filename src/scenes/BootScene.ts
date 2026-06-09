@@ -7,18 +7,12 @@ import { assetUrl } from '../utils/assetUrl';
 import { isGameUnlocked } from '../utils/unlockGate';
 
 export class BootScene extends Phaser.Scene {
-  private gameLocked = false;
-
   constructor() {
     super({ key: 'BootScene' });
   }
 
-  init(): void {
-    this.gameLocked = !isGameUnlocked();
-  }
-
   preload(): void {
-    if (this.gameLocked) return;
+    if (!isGameUnlocked()) return;
 
     for (const player of gameConfig.players) {
       this.load.image(`face_${player.id}`, assetUrl(player.face));
@@ -38,7 +32,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
-    if (this.gameLocked) {
+    if (!isGameUnlocked()) {
       this.scene.start('LockedScene');
       return;
     }
