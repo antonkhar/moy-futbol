@@ -56,12 +56,18 @@ npm run dev
 
 ### Тестовый режим (в URL)
 
-| Ссылка | Эффект |
-|--------|--------|
+| Параметр | Эффект |
+|----------|--------|
 | `?test=locked` | Принудительно заглушка |
-| `?test=unlocked` | Принудительно игра (проверить до 11 июня) |
+| `?test=unlocked` | Принудительно игра |
+| `?asOf=2026-06-10` | Проверка «как будто сегодня 10 июня» (заглушка) |
+| `?asOf=2026-06-11` | Проверка «как будто сегодня 11 июня» (игра) |
 
-Пример: `https://antonkhar.github.io/moy-futbol/?test=unlocked`
+Примеры:
+- `https://antonkhar.github.io/moy-futbol/?asOf=2026-06-10` — ещё рано
+- `https://antonkhar.github.io/moy-futbol/?asOf=2026-06-11` — уже можно играть
+
+`?test=...` важнее `?asOf=...` (если указаны оба, сработает `test`).
 
 Тексты — в `gameConfig.ts`: `unlockDateIso`, `lockedMessage`.
 

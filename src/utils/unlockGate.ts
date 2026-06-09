@@ -4,12 +4,24 @@ import { assetUrl } from './assetUrl';
 export type UnlockTestMode = 'locked' | 'unlocked';
 
 let resolvedUnlockState: boolean | null = null;
+let resolvedAsOfIso: string | null = null;
 
 /**
  * Тестовый режим через URL:
  * ?test=locked   — принудительно закрыто
  * ?test=unlocked — принудительно открыто
+ * ?asOf=2026-06-10 — «сегодня» как эта дата (по Москве), проверка как в бою
  */
+export function getSimulatedAsOfIso(): string | null {
+  const asOf = new URLSearchParams(window.location.search).get('asOf');
+  if (!asOf || !/^\d{4}-\d{2}-\d{2}$/.test(asOf)) return null;
+  return asOf;
+}
+
+function dateFromMoscowIso(isoDate: string): Date {
+  return new Date(`${isoDate}T12:00:00+03:00`);
+}
+
 export function getUnlockTestMode(): UnlockTestMode | null {
   const value = new URLSearchParams(window.location.search).get('test');
   if (value === 'locked' || value === 'lock') return 'locked';
@@ -71,6 +83,13 @@ export async function resolveUnlockState(): Promise<boolean> {
     return true;
   }
 
+  const asOfIso = getSimulatedAsOfIso();
+  if (asOfIso) {
+    resolvedAsOfIso = asOfIso;
+    resolvedUnlockState = isUnlockDateReached(dateFromMoscowIso(asOfIso));
+    return resolvedUnlockState;
+  }
+
   const serverTime = await fetchServerTime();
   const now = serverTime ?? new Date();
   resolvedUnlockState = isUnlockDateReached(now);
@@ -94,15 +113,15 @@ export function getUnlockDebugInfo(): {
   unlockMoscowYmd: number;
   unlocked: boolean;
   testMode: UnlockTestMode | null;
-  usedServerTime: boolean;
+  simulatedAsOf: string | null;
 } {
-  const now = new Date();
+  const now = resolvedAsOfIso ? dateFromMoscowIso(resolvedAsOfIso) : new Date();
   return {
     nowUtc: now.toISOString(),
     nowMoscowYmd: toMoscowYmd(now),
     unlockMoscowYmd: parseUnlockYmd(),
     unlocked: isGameUnlocked(),
     testMode: getUnlockTestMode(),
-    usedServerTime: resolvedUnlockState !== null,
+    simulatedAsOf: resolvedAsOfIso,
   };
 }

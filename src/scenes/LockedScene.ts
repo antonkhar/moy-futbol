@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { gameConfig } from '../config/gameConfig';
 import { drawFestiveBackground } from '../utils/decorations';
-import { getUnlockDebugInfo, getUnlockTestMode } from '../utils/unlockGate';
+import { getUnlockDebugInfo } from '../utils/unlockGate';
 
 export class LockedScene extends Phaser.Scene {
   constructor() {
@@ -33,20 +33,23 @@ export class LockedScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    const testMode = getUnlockTestMode();
-    if (testMode) {
-      const debug = getUnlockDebugInfo();
+    const debug = getUnlockDebugInfo();
+    if (debug.testMode || debug.simulatedAsOf) {
+      const parts = [
+        debug.testMode ? `тест: ${debug.testMode}` : null,
+        debug.simulatedAsOf ? `как будто: ${debug.simulatedAsOf}` : null,
+        `МСК: ${debug.nowMoscowYmd}`,
+        `открытие: ${debug.unlockMoscowYmd}`,
+      ].filter(Boolean);
+
       this.add
-        .text(
-          width / 2,
-          height - 28,
-          `тест: ${testMode} · МСК сегодня: ${debug.nowMoscowYmd} · открытие: ${debug.unlockMoscowYmd}`,
-          {
-            fontFamily: 'Nunito, sans-serif',
-            fontSize: '11px',
-            color: '#b7e4c7',
-          },
-        )
+        .text(width / 2, height - 28, parts.join(' · '), {
+          fontFamily: 'Nunito, sans-serif',
+          fontSize: '11px',
+          color: '#b7e4c7',
+          align: 'center',
+          wordWrap: { width: width * 0.9 },
+        })
         .setOrigin(0.5);
     }
   }
