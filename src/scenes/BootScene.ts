@@ -3,6 +3,7 @@ import { gameConfig } from '../config/gameConfig';
 import type { PlayerConfig } from '../config/gameConfig';
 import { createPlayerTokenTexture } from '../utils/tokenTexture';
 import { BALL_IMAGE_PATH, BALL_TEXTURE_KEY, createFallbackBallTexture } from '../entities/Ball';
+import { assetUrl } from '../utils/assetUrl';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -11,9 +12,9 @@ export class BootScene extends Phaser.Scene {
 
   preload(): void {
     for (const player of gameConfig.players) {
-      this.load.image(`face_${player.id}`, player.face);
+      this.load.image(`face_${player.id}`, assetUrl(player.face));
     }
-    this.load.image(BALL_TEXTURE_KEY, BALL_IMAGE_PATH);
+    this.load.image(BALL_TEXTURE_KEY, assetUrl(BALL_IMAGE_PATH));
 
     this.load.on('loaderror', (file: { key: string }) => {
       if (file.key === BALL_TEXTURE_KEY) {

@@ -20,12 +20,12 @@ export default defineConfig({
         orientation: 'landscape',
         icons: [
           {
-            src: '/favicon.svg',
+            src: `${base}favicon.svg`,
             sizes: '192x192',
             type: 'image/svg+xml',
           },
           {
-            src: '/favicon.svg',
+            src: `${base}favicon.svg`,
             sizes: '512x512',
             type: 'image/svg+xml',
           },

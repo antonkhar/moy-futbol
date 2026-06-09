@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 export const BALL_RADIUS = 14;
 export const BALL_TEXTURE_KEY = 'ball';
-export const BALL_IMAGE_PATH = '/assets/ball.png';
+export const BALL_IMAGE_PATH = 'assets/ball.png';
 
 /** Базовый отскок 0.85 + ~22% */
 const BALL_BOUNCE = 1.0;
